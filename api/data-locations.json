@@ -1,0 +1,9 @@
+{
+    "station_shape": {
+        "start": "observation_station",
+        "path": ["omso:PointTimeSeriesObservation","om:featureOfInterest", "sams:SF_SpatialSamplingFeature", "sams:shape", "gml:Point"]
+    },
+    "observation_station": {
+        "path": ["wfs:FeatureCollection", "wfs:member"]
+    }
+}
