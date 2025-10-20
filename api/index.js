@@ -6,7 +6,11 @@ import fs from "node:fs/promises"
 
 import data_locations from "./data-locations.json" with {type: "json"}
 
-const parser = new XMLParser()
+const parser = new XMLParser({
+    ignoreAttributes: false,
+    attributeNamePrefix : "@_",
+    attributesGroupName : "@_"
+})
 
 
 async function getWeatherData() {
@@ -18,18 +22,32 @@ storedquery_id=fmi::observations::weather::daily::timevaluepair&
 place=hyytiälä&
 starttime=2024-01-01&
 endtime=2024-12-31`.replaceAll("\n", "")
-    console.log(url)
     const response = await fetch(url)
     const xmlText = await response.text()
     const parsedXml = parser.parse(xmlText)
 
-    //fs.writeFile("./data.json", JSON.stringify(parsedXml))
+    const observations = get(parsedXml, data_locations.observations)
+    const observationTypes = get(parsedXml,data_locations.station_type)
 
-    console.log("final:", get(parsedXml, data_locations.station_shape))
+    const measurementData =
+        get(parsedXml, data_locations.station_shape)
+            .reduce((prev, curr, index, arr) => {
+                const measurements = observations[index]
+                const measurementType = observationTypes[index]
+                return [...prev, {
+                    name: curr["gml:name"],
+                    lat: curr["gml:pos"].split(" ")[0],
+                    lon: curr["gml:pos"].split(" ")[1],
+                    type: measurementType,
+                    measurements: measurements.map(m => ({time: m["wml2:time"], value: m["wml2:value"]}))
+                }]
+            }, [])
+
+    fs.writeFile("./data.json", JSON.stringify(measurementData))
+
 }
 
 function get(source, config, ignoreStart = false) {
-    console.log(config)
     const sourceData = config.start && !ignoreStart ? get(source, data_locations[config.start]) : source
     if (sourceData instanceof Array) {
         return sourceData.map(item => get(item, config, true))

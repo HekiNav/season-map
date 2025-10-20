@@ -1,7 +1,23 @@
 {
     "station_shape": {
+        "start": "station",
+        "path": ["om:featureOfInterest", "sams:SF_SpatialSamplingFeature", "sams:shape", "gml:Point"]
+    },
+    "station_type": {
+        "start": "station",
+        "path": ["om:observedProperty", "@_", "@_xlink:href"]
+    },
+    "observations": {
+        "start": "station_observations",
+        "path": ["wml2:MeasurementTVP"]
+    },
+    "station_observations": {
+        "start": "station",
+        "path": ["om:result", "wml2:MeasurementTimeseries","wml2:point"]
+    },
+    "station": {
         "start": "observation_station",
-        "path": ["omso:PointTimeSeriesObservation","om:featureOfInterest", "sams:SF_SpatialSamplingFeature", "sams:shape", "gml:Point"]
+        "path": ["omso:PointTimeSeriesObservation"]
     },
     "observation_station": {
         "path": ["wfs:FeatureCollection", "wfs:member"]
