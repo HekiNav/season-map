@@ -4,6 +4,8 @@ import { XMLParser, XMLBuilder, XMLValidator } from "fast-xml-parser"
 
 import fs from "node:fs/promises"
 
+import * as sync_fs from "node:fs"
+
 import data_locations from "./data-locations.json" with {type: "json"}
 
 const parser = new XMLParser({
@@ -13,6 +15,8 @@ const parser = new XMLParser({
 })
 
 const bbox = [19, 59, 33, 71]
+
+start()
 
 
 async function getWeatherData() {
@@ -72,13 +76,14 @@ endtime=${yesterday}`.replaceAll("\n", "")
     await fs.writeFile("./data.json", JSON.stringify(measurementData))
 
     console.timeEnd("weather_data")
-
+    return measurementData
 }
 
 async function processWeatherData() {
     console.time("weather_data_processing")
-    const { stations, start_time, end_time } = JSON.parse(await (await fs.readFile("./data.json")).toString())
-    const finland_shape = JSON.parse(await (await fs.readFile("./finland.geojson")).toString())
+    const { stations, start_time, end_time } = await getOrGenerate("./data.json", getWeatherData, Date.now() - 21 * 60 * 60 * 1000)
+
+    const finland_shape = JSON.parse((await fs.readFile("./finland.geojson")).toString())
 
     console.timeLog("weather_data_processing", "loaded data.json, processing seasons")
 
@@ -101,7 +106,7 @@ async function processWeatherData() {
 
     const clippedVoronoi = turf.featureCollection(
         voronoi.features
-            .map(f => turf.intersect(turf.featureCollection([f, finland_shape]),{properties: f.properties}))
+            .map(f => turf.intersect(turf.featureCollection([f, finland_shape]), { properties: f.properties }))
             .filter(f => f)
     );
 
@@ -109,15 +114,24 @@ async function processWeatherData() {
 
     await fs.writeFile("./data-voronoi.geojson", JSON.stringify(clippedVoronoi))
 
-    console.timeLog("weather_data_processing", "wrote data-voronoi.geojson, generating daily season geojsons")
+    console.timeLog("weather_data_processing", "wrote data-voronoi.geojson, generating daily seasons")
 
     const amount_days = (new Date(end_time) - new Date(start_time)) / 1000 / 3600 / 24
 
+    const geojsonsByDay = { start_time: start_time, end_time: end_time }
+
     for (let i = 0; i <= amount_days; i++) {
         const day = new Date(start_time).getTime() + i * 24 * 3600 * 1000
+        const dataByStation = seasons.map(s => ({ name: s.name, value: s.seasons.find(e => new Date(e.time).getTime() == day) }))
+        geojsonsByDay[new Date(day).toISOString()] = dataByStation.reduce((prev, curr) => ({ ...prev, [curr.name]: curr.value ? curr.value.season : null }), {})
     }
+    console.timeLog("weather_data_processing", "generated daily seasons, writing data-daily-seasons.json")
+
+    await fs.writeFile("./data-daily-seasons.json", JSON.stringify(geojsonsByDay))
 
     console.timeEnd("weather_data_processing")
+
+    return geojsonsByDay
 }
 
 function getSeasons(data = []) {
@@ -173,4 +187,32 @@ function get(source, config, ignoreStart = false) {
         return prev[curr]
     }, sourceData)
 }
-processWeatherData()
+function getOrGenerate(file, generation_func, timestamp) {
+    return new Promise(resolve => {
+        sync_fs.access(file, (err) => {
+            if (err) {
+                // if file is mising, generate
+                console.log(`File ${file} is missing, generating`)
+                if (err.code == "ENOENT") generation_func().then(resolve)
+                else throw err
+            } else {
+                fs.readFile(file).then((data) => {
+                    const json = JSON.parse(data.toString())
+                    // if data is expired, generate new
+                    console.log(`Data in ${file} is expired, generating new data`)
+                    if ((timestamp - new Date(json.end_time)) > 24 * 3600 * 1000) {
+                        generation_func().then(resolve)
+                    } else {
+                        resolve(json)
+                    }
+
+                })
+            }
+        })
+    })
+}
+async function start() {
+    const dailySeasons = await getOrGenerate("./data-daily-seasons.json", processWeatherData, Date.now() - 21 * 60 * 60 * 1000)
+    
+
+}
