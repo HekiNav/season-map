@@ -47,8 +47,10 @@ endtime=${yesterday}`.replaceAll("\n", "")
     const observations = get(parsedXml, data_locations.observations)
     const observationTypes = get(parsedXml, data_locations.station_type)
 
-    const measurementData =
-        get(parsedXml, data_locations.station_shape)
+    const measurementData = {
+        start_time: start_time,
+        end_time: yesterday,
+        stations: get(parsedXml, data_locations.station_shape)
             .reduce((prev, curr, index, arr) => {
                 const measurements = observations[index]
                 const measurementType = observationTypes[index]
@@ -63,8 +65,9 @@ endtime=${yesterday}`.replaceAll("\n", "")
                     measurements: measurements.map(m => ({ time: m["wml2:time"], value: m["wml2:value"] }))
                 }]
             }, [])
+    }
 
-    console.timeLog("weather_data", "parsed, wrining data")
+    console.timeLog("weather_data", "parsed, writing data")
 
     await fs.writeFile("./data.json", JSON.stringify(measurementData))
 
@@ -73,25 +76,35 @@ endtime=${yesterday}`.replaceAll("\n", "")
 }
 
 async function processWeatherData() {
-    const data = JSON.parse(await (await fs.readFile("./data.json")).toString())
-    // how many days to average out
-    const days = 7
+    console.time("weather_data_processing")
+    const { stations, start_time, end_time } = JSON.parse(await (await fs.readFile("./data.json")).toString())
 
-    const seasons = data.map(station => {
-        const stationfollowingAverages = station.measurements.map((m, i, a) => {
-            const values = a.slice(i, i + days)
-            return { time: m.time, days: values.length, value: Math.round(values.reduce((prev, curr) => prev + curr.value, 0) / values.length * 10) / 10 }
-        })
-        station.seasons = getSeasons(stationfollowingAverages)
-        return station
+    console.timeLog("weather_data_processing", "loaded data.json, processing seasons")
+
+    const seasons = stations.map(station => {
+        const [labels, changes] = getSeasons(station.measurements)
+        return { ...station, seasons: labels, seasonChanges: changes }
     })
+
+    console.timeLog("weather_data_processing", "processed seasons, writing data-seasons.json")
+
     await fs.writeFile("./data-seasons.json", JSON.stringify(seasons))
+
+    const amount_days = (new Date(end_time) - new Date(start_time)) / 1000 / 3600 / 24
+
+    for (let i = 0; i <= amount_days; i++) {
+        const day = new Date(start_time).getTime() + i * 24 * 3600 * 1000
+        console.log(new Date(day))
+    }
+
+    console.timeEnd("weather_data_processing")
 }
 
-function getSeasons(data) {
+function getSeasons(data = []) {
     const seasonLabels = data.map(e => ({ season: classify(e.value), time: e.time, days: e.days }))
 
     let currentSeason = seasonLabels[0].season
+
 
     const seasonChanges = [{
         time: seasonLabels[0].time, days: seasonLabels[0].days, season:
@@ -100,20 +113,29 @@ function getSeasons(data) {
                 seasonLabels[0].season
     }]
 
+    // checks if the next x days are the same to rule out short variations in temperatures
+    const requiredStreak = 4
 
-    for (let i = 0; i < seasonLabels.length; i++) {
-        if (seasonLabels[i].season !== currentSeason) {
+    for (let i = 1; i < seasonLabels.length; i++) {
+        const values = seasonLabels.slice(i, i + requiredStreak).map((v) =>
+        ({
+            ...v, season: v.season == 1 ?
+                currentSeason >= 2 ? 3 : 1 :
+                v.season
+        })
+        )
+        //current day
+        const season = values[0].season
+        if (season !== currentSeason && values.every(v => v.season == values[0].season)) {
             seasonChanges.push({
-                time: seasonLabels[i].time, days: seasonLabels[i].days, season:
-                    seasonLabels[i].season == 1 ?
-                        currentSeason == 2 ? 3 : 1 :
-                        seasonLabels[i].season
+                time: seasonLabels[i].time, days: seasonLabels[i].days, season: season
             })
-            currentSeason = seasonLabels[i].season
+            currentSeason = season
         }
+        seasonLabels[i].season = currentSeason
     }
 
-    return seasonChanges;
+    return [seasonLabels, seasonChanges];
 }
 
 function classify(temp) {
