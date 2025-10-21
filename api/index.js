@@ -18,11 +18,15 @@ getData()
 
 const app = express()
 
-app.on("ready", () => {
-    console.log("Listening on port ")
+
+app.get('/map.geojson', (req, res) => {
+    if (!voronoiGeoJson) return res.json({ error: "Geojson file is being prepared, please wait" })
+    res.send(Buffer.from(voronoiGeoJson))
 })
 
-
+app.listen(process.env.PORT, () => {
+    console.log(`API listening on port ${process.env.PORT}`)
+})
 
 
 async function getWeatherData() {
@@ -205,8 +209,8 @@ function getOrGenerate(file, generation_func, timestamp) {
                 fs.readFile(file).then((data) => {
                     const json = JSON.parse(data.toString())
                     // if data is expired, generate new
-                    console.log(`Data in ${file} is expired, generating new data`)
                     if ((timestamp - new Date(json.end_time)) > 24 * 3600 * 1000) {
+                        console.log(`Data in ${file} is expired, generating new data`)
                         generation_func().then(resolve)
                     } else {
                         resolve(json)
