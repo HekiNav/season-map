@@ -12,7 +12,7 @@ const parser = new XMLParser({
     attributesGroupName: "@_"
 })
 
-const bbox = [20.6455928891, 59.846373196, 31.5160921567, 70.1641930203]
+const bbox = [19, 59, 33, 71]
 
 
 async function getWeatherData() {
@@ -78,6 +78,7 @@ endtime=${yesterday}`.replaceAll("\n", "")
 async function processWeatherData() {
     console.time("weather_data_processing")
     const { stations, start_time, end_time } = JSON.parse(await (await fs.readFile("./data.json")).toString())
+    const finland_shape = JSON.parse(await (await fs.readFile("./finland.geojson")).toString())
 
     console.timeLog("weather_data_processing", "loaded data.json, processing seasons")
 
@@ -90,11 +91,30 @@ async function processWeatherData() {
 
     await fs.writeFile("./data-seasons.json", JSON.stringify(seasons))
 
+    console.timeLog("weather_data_processing", "wrote data-seasons.json, generating voronoi pattern")
+
+    const station_points = {
+        type: "FeatureCollection",
+        features: stations.map(s => turf.point([s.lon, s.lat], { name: s.name }))
+    }
+    const voronoi = turf.voronoi(station_points, { bbox: bbox })
+
+    const clippedVoronoi = turf.featureCollection(
+        voronoi.features
+            .map(f => turf.intersect(turf.featureCollection([f, finland_shape]),{properties: f.properties}))
+            .filter(f => f)
+    );
+
+    console.timeLog("weather_data_processing", "processed voronoi pattern, writing data-voronoi.json")
+
+    await fs.writeFile("./data-voronoi.geojson", JSON.stringify(clippedVoronoi))
+
+    console.timeLog("weather_data_processing", "wrote data-voronoi.geojson, generating daily season geojsons")
+
     const amount_days = (new Date(end_time) - new Date(start_time)) / 1000 / 3600 / 24
 
     for (let i = 0; i <= amount_days; i++) {
         const day = new Date(start_time).getTime() + i * 24 * 3600 * 1000
-        console.log(new Date(day))
     }
 
     console.timeEnd("weather_data_processing")
@@ -153,5 +173,4 @@ function get(source, config, ignoreStart = false) {
         return prev[curr]
     }, sourceData)
 }
-
 processWeatherData()
