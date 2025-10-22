@@ -16,6 +16,8 @@ const layerGroup = L.layerGroup().addTo(map)
 let currentDate = null
 let seasonData = null
 
+let dateBounds = { min: 0, max: 0 }
+
 initMap()
 
 const seasonColors = [
@@ -25,11 +27,69 @@ const seasonColors = [
     "orange", //fall
 ]
 
-document.querySelector("#play").addEventListener("click", (e) => {
-	e.preventDefault()
-	e.target.checked = !e.target.checked
+let playSpeed = 0
+
+let prevValue = 0
+
+const playButton = document.querySelector("#play")
+
+document.querySelectorAll(".player:not(input)").forEach(el => {
+    el.addEventListener("click", (e) => {
+        pausePlayer()
+    })
 })
 
+document.querySelectorAll("input.player:not(#play)").forEach(el => {
+    el.addEventListener("click", (e) => {
+        if (e.target.checked) {
+            unPausePlayer()
+        }
+    })
+})
+
+playButton.addEventListener("click", (e) => {
+    if (playButton.classList.contains("paused")) {
+        unPausePlayer()
+    } else {
+        pausePlayer()
+    }
+})
+
+function unPausePlayer() {
+    playButton.classList.remove("paused")
+}
+
+function setDate(amount, relative = true, pause = true) {
+    const range = document.querySelector("#date-range")
+    const newValue = Math.min(dateBounds.max, Math.max(dateBounds.min, (relative ? Number(range.value) : 0) + amount))
+    if (prevValue == newValue) return
+    range.value, prevValue = newValue
+
+    currentDate = new Date(new Date(seasonData.start_time).getTime() + range.value * 24 * 3600 * 1000).toISOString().split("T")[0]
+    updateMapColors()
+    if (pause) pausePlayer()
+}
+function setDateBounds(start_time, end_time) {
+    const range = document.querySelector("#date-range")
+
+    document.querySelector("#date-range-start").textContent = start_time
+    document.querySelector("#date-range-end").textContent = end_time
+
+    range.removeAttribute("disabled")
+
+    const diff = new Date(end_time) - new Date(start_time)
+
+    const max = diff / 24 / 3600 / 1000;
+    range.setAttribute("max", max)
+
+    dateBounds.min = 0
+    dateBounds.max = max
+}
+
+function pausePlayer() {
+    document.querySelectorAll("input.player").forEach(el => el.checked = false)
+    playButton.classList.add("paused")
+}
 
 async function initMap() {
     const [voronoiGeoJson, seasonDataJson] = await Promise.all([(await fetch(API_URL + "/map.geojson")).json(), (await fetch(API_URL + "/seasons.json")).json()])
@@ -42,6 +102,7 @@ async function initMap() {
     console.log(seasonDataJson)
     currentDate = "2025-07-07"
     seasonData = seasonDataJson
+    setDateBounds(seasonData.start_time, seasonData.end_time)
     updateMapColors()
 }
 function updateMapColors() {

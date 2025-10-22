@@ -1,6 +1,7 @@
 body {
     margin: 0;
     padding: 0;
+    overflow: hidden;
 }
 #map {
     height: 100vh;
@@ -12,9 +13,9 @@ body {
 .icon-flip::before{
     transform: scaleX(-1);
 }
-#play:checked + [for="play"] > i.on-checked {
+#play.paused + [for="play"] > i.on-not-paused {
     display: none;
 }
-#play:not(:checked) + [for="play"] > i.on-not-checked {
+#play:not(.paused) + [for="play"] > i.on-paused {
     display: none;
 }
