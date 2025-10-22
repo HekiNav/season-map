@@ -4,12 +4,17 @@ import fs from "node:fs/promises"
 import * as sync_fs from "node:fs"
 import express from "express"
 import data_locations from "./data/fmi-data-locations.json" with {type: "json"}
+import cors from "cors"
 
 const parser = new XMLParser({
     ignoreAttributes: false,
     attributeNamePrefix: "@_",
     attributesGroupName: "@_"
 })
+
+const station_blacklist = [
+    "Inari Seitalaassa"
+]
 
 const bbox = [19, 59, 33, 71]
 
@@ -18,10 +23,15 @@ getData()
 
 const app = express()
 
+app.use(cors())
 
 app.get('/map.geojson', (req, res) => {
     if (!voronoiGeoJson) return res.json({ error: "Geojson file is being prepared, please wait" })
     res.send(Buffer.from(voronoiGeoJson))
+})
+app.get('/seasons.json', (req, res) => {
+    if (!voronoiGeoJson) return res.json({ error: "Geojson file is being prepared, please wait" })
+    res.send(dailySeasons)
 })
 
 app.listen(process.env.PORT, () => {
@@ -110,7 +120,7 @@ async function processWeatherData() {
 
     const station_points = {
         type: "FeatureCollection",
-        features: stations.map(s => turf.point([s.lon, s.lat], { name: s.name }))
+        features: stations.filter(s => !station_blacklist.find(n => n == s.name)).map(s => turf.point([s.lon, s.lat], { name: s.name }))
     }
     const voronoi = turf.voronoi(station_points, { bbox: bbox })
 
@@ -133,7 +143,7 @@ async function processWeatherData() {
     for (let i = 0; i <= amount_days; i++) {
         const day = new Date(start_time).getTime() + i * 24 * 3600 * 1000
         const dataByStation = seasons.map(s => ({ name: s.name, value: s.seasons.find(e => new Date(e.time).getTime() == day) }))
-        geojsonsByDay[new Date(day).toISOString()] = dataByStation.reduce((prev, curr) => ({ ...prev, [curr.name]: curr.value ? curr.value.season : null }), {})
+        geojsonsByDay[new Date(day).toISOString().split("T")[0]] = dataByStation.reduce((prev, curr) => ({ ...prev, [curr.name]: curr.value ? curr.value.season : null }), {})
     }
     console.timeLog("weather_data_processing", "generated daily seasons, writing daily-seasons.json")
 
@@ -222,6 +232,6 @@ function getOrGenerate(file, generation_func, timestamp) {
     })
 }
 async function getData() {
-    dailySeasons = await getOrGenerate("./data/daily-seasons.json", processWeatherData, Date.now() - 21 * 60 * 60 * 1000)
+    dailySeasons = await getOrGenerate("./data/daily-seasons.json", processWeatherData, process.env.ALWAYS_REPROCESS_WEATHER_DATA ? Date.now() : Date.now() - 21 * 60 * 60 * 1000)
     voronoiGeoJson = (await fs.readFile("./data/voronoi.geojson")).buffer
 }

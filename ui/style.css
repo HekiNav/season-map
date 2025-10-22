@@ -5,3 +5,16 @@ body {
 #map {
     height: 100vh;
 }
+.custom-range{
+    height: 2.5em !important;
+    display: block;
+}
+.icon-flip::before{
+    transform: scaleX(-1);
+}
+#play:checked + [for="play"] > i.on-checked {
+    display: none;
+}
+#play:not(:checked) + [for="play"] > i.on-not-checked {
+    display: none;
+}
