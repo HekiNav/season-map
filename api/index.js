@@ -13,7 +13,8 @@ const parser = new XMLParser({
 })
 
 const station_blacklist = [
-    "Inari Seitalaassa"
+    "Inari Seitalaassa",
+    "Oulu Oulunsalo Pellonpää"
 ]
 
 const bbox = [19, 59, 33, 71]

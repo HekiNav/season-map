@@ -44,23 +44,48 @@
         </div>
     </div>
 
+    <div class="bottom-0 position-absolute start-50 translate-middle" style="z-index: 1000;">
 
-    <div class="btn-group btn-group-lg bottom-0 position-absolute start-50 translate-middle" style="z-index: 1000;" role="group">
-        <button class="btn btn-primary player" id="skip-start"><i class="bi bi-skip-end-fill icon-flip"></i></button>
 
-        <input type="radio" class="btn-check player" name="btnradio" id="fb" autocomplete="off">
-        <label class="btn btn-primary" for="fb"><i class="bi bi-fast-forward-fill icon-flip"></i></label>
+        <div class="progress-stacked mb-1" style="height: 3em">
+            <div class="position-absolute d-flex w-100 justify-content-center align-items-center fw-semibold " id="date"
+                style="height: 3em">
+                <span class="spinner-border spinner-border-sm" aria-hidden="true"></span><span role="status"
+                    class="ms-1">Loading</span>
+            </div>
+            <div class="progress" role="progressbar" style="width: 15%; height: 100%;">
+                <div class="progress-bar" style="background: green;"></div>
+            </div>
+            <div class="progress" role="progressbar" style="width: 30%; height: 100%;">
+                <div class="progress-bar" style="background: yellow;"></div>
+            </div>
+            <div class="progress" role="progressbar" style="width: 20%; height: 100%;">
+                <div class="progress-bar" style="background: orange;"></div>
+            </div>
+            <div class="progress" role="progressbar" style="width: 35%; height: 100%;">
+                <div class="progress-bar" style="background: white;"></div>
+            </div>
+        </div>
 
-        <input type="radio" class="btn-check paused player" name="btnradio" id="play" autocomplete="off">
-        <label class="btn btn-primary" for="play"><i class="bi bi-play-fill on-paused"></i><i
-                class="bi bi-pause-fill on-not-paused"></i></label>
+        <div class="btn-group btn-group-lg" role="group">
+            <button class="btn btn-primary player" id="skip-start"><i
+                    class="bi bi-skip-end-fill icon-flip"></i></button>
 
-        <input type="radio" class="btn-check player" name="btnradio" id="ff" autocomplete="off">
-        <label class="btn btn-primary" for="ff"><i class="bi bi-fast-forward-fill"></i></label>
+            <input type="radio" class="btn-check player" name="btnradio" id="fast-backward" autocomplete="off">
+            <label class="btn btn-primary" for="fast-backward"><i class="bi bi-fast-forward-fill icon-flip"></i></label>
 
-        <button class="btn btn-primary player" id="skip-end"><i class="bi bi-skip-end-fill"></i></button>
+            <input type="radio" class="btn-check paused player" name="btnradio" id="play" autocomplete="off">
+            <label class="btn btn-primary" for="play"><i class="bi bi-play-fill on-paused"></i><i
+                    class="bi bi-pause-fill on-not-paused"></i></label>
 
+            <input type="radio" class="btn-check player" name="btnradio" id="fast-forward" autocomplete="off">
+            <label class="btn btn-primary" for="fast-forward"><i class="bi bi-fast-forward-fill"></i></label>
+
+            <button class="btn btn-primary player" id="skip-end"><i class="bi bi-skip-end-fill"></i></button>
+
+        </div>
     </div>
+
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
         integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"

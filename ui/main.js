@@ -15,6 +15,7 @@ const layerGroup = L.layerGroup().addTo(map)
 
 let currentDate = null
 let seasonData = null
+let tick = 0
 
 let dateBounds = { min: 0, max: 0 }
 
@@ -27,20 +28,45 @@ const seasonColors = [
     "orange", //fall
 ]
 
+
 let playSpeed = 0
 
 let prevValue = 0
 
 const playButton = document.querySelector("#play")
 
+const tps = 10
+
+setInterval(play, 1000 / tps)
+
 document.querySelectorAll(".player:not(input)").forEach(el => {
     el.addEventListener("click", (e) => {
+        switch (el.id) {
+            case "skip-start":
+                setDate(dateBounds.min, false)
+                break;
+            case "skip-end":
+                setDate(dateBounds.max, false)
+                break;
+            default:
+                break;
+        }
         pausePlayer()
     })
 })
 
 document.querySelectorAll("input.player:not(#play)").forEach(el => {
     el.addEventListener("click", (e) => {
+        switch (e.target.getAttribute("for") || e.target.id) {
+            case "fast-forward":
+                playSpeed = 10
+                break
+            case "fast-backward":
+                playSpeed = -10
+                break
+            default:
+                break
+        }
         if (e.target.checked) {
             unPausePlayer()
         }
@@ -50,6 +76,7 @@ document.querySelectorAll("input.player:not(#play)").forEach(el => {
 playButton.addEventListener("click", (e) => {
     if (playButton.classList.contains("paused")) {
         unPausePlayer()
+        playSpeed = 1
     } else {
         pausePlayer()
     }
@@ -59,14 +86,23 @@ function unPausePlayer() {
     playButton.classList.remove("paused")
 }
 
+function play() {
+    tick = (tick + 1) % 1000
+    if (tick % (tps / playSpeed) == 0) setDate(Math.sign(playSpeed), true, false)
+}
+
 function setDate(amount, relative = true, pause = true) {
     const range = document.querySelector("#date-range")
     const newValue = Math.min(dateBounds.max, Math.max(dateBounds.min, (relative ? Number(range.value) : 0) + amount))
     if (prevValue == newValue) return
-    range.value, prevValue = newValue
+    range.value = newValue
+    prevValue = newValue
 
     currentDate = new Date(new Date(seasonData.start_time).getTime() + range.value * 24 * 3600 * 1000).toISOString().split("T")[0]
     updateMapColors()
+
+    document.querySelector("#date").textContent = currentDate
+
     if (pause) pausePlayer()
 }
 function setDateBounds(start_time, end_time) {
@@ -89,6 +125,7 @@ function setDateBounds(start_time, end_time) {
 function pausePlayer() {
     document.querySelectorAll("input.player").forEach(el => el.checked = false)
     playButton.classList.add("paused")
+    playSpeed = 0
 }
 
 async function initMap() {
@@ -100,9 +137,10 @@ async function initMap() {
         smoothFactor: 0
     }).addTo(layerGroup)
     console.log(seasonDataJson)
-    currentDate = "2025-07-07"
     seasonData = seasonDataJson
     setDateBounds(seasonData.start_time, seasonData.end_time)
+    currentDate = seasonData.start_time
+    document.querySelector("#date").textContent = currentDate
     updateMapColors()
 }
 function updateMapColors() {
