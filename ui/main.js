@@ -144,11 +144,33 @@ async function initMap() {
     updateMapColors()
 }
 function updateMapColors() {
+    const seasonCoverages = [
+        0,
+        0,
+        0,
+        0,
+        0
+    ]
     layerGroup.eachLayer(l => {
-        l.setStyle((feature) => ({
-            stroke: false,
-            fillOpacity: 0.5,
-            color: seasonColors[seasonData[currentDate][feature.properties.name]]
-        }))
+        l.setStyle((feature) => {
+            const season = seasonData[currentDate][feature.properties.name]
+            seasonCoverages[typeof season == "number" ? season : 4] += feature.properties.area
+            return {
+                stroke: false,
+                fillOpacity: 0.5,
+                color: seasonColors[season]
+            }
+        })
+    })
+    const totalArea = seasonCoverages.reduce((prev, curr) => prev + curr, 0)
+    const percents = seasonCoverages.map(a => range(0, totalArea, 0, 100, a))
+    console.log(percents)
+    percents.forEach((p,i) => {
+        console.log(i)
+        document.querySelector(`.progress.season-percents[data-season="${i}"]`).style.width = `${p}%`
     })
 }
+function lerp(x, y, a) { return x * (1 - a) + y * a }
+function clamp(a, min = 0, max = 1) { return Math.min(max, Math.max(min, a)) }
+function invlerp(x, y, a) { return clamp((a - x) / (y - x)) }
+function range(x1, y1, x2, y2, a) { return lerp(x2, y2, invlerp(x1, y1, a)) }

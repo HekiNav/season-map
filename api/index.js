@@ -127,7 +127,7 @@ async function processWeatherData() {
 
     const clippedVoronoi = turf.featureCollection(
         voronoi.features
-            .map(f => turf.intersect(turf.featureCollection([f, finland_shape]), { properties: f.properties }))
+            .map(f => turf.intersect(turf.featureCollection([f, finland_shape]), { properties: { ...f.properties, area: turf.area(f) / 1_000_000 } }))
             .filter(f => f)
     );
 
@@ -169,7 +169,7 @@ function getSeasons(data = []) {
     }]
 
     // checks if the next x days are the same to rule out short variations in temperatures
-    const requiredStreak = 4
+    const requiredStreak = 7
 
     for (let i = 1; i < seasonLabels.length; i++) {
         const values = seasonLabels.slice(i, i + requiredStreak).map((v) =>

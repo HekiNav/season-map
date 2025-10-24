@@ -19,3 +19,6 @@ body {
 #play:not(.paused) + [for="play"] > i.on-paused {
     display: none;
 }
+.season-percents {
+    transition: 100ms linear;
+}
