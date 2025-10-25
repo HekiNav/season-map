@@ -12,6 +12,8 @@ const parser = new XMLParser({
     attributesGroupName: "@_"
 })
 
+// ** A Bunch of params to change the result **
+
 const station_blacklist = [
     "Inari Seitalaassa",
     "Oulu Oulunsalo Pellonpää",
@@ -20,11 +22,24 @@ const station_blacklist = [
 
 const bbox = [19, 59, 33, 71]
 
+/* seasons: 
+0   winter
+1   spring 
+2   summer
+3   fall
+4   sometimes N/A or null
+*/
 const seasonBounds = [
     [0, -Infinity],
     [10, 0],
     [Infinity, 10],
     [10, 0],
+]
+const seasonStartMonthLimits = [
+    [10, 2],
+    [11, 5],
+    [3, 8],
+    [6, 11],
 ]
 
 // checks if the next x days are the same to rule out short variations in temperatures
@@ -185,8 +200,11 @@ function getSeasons(data = []) {
             const values = data.slice(i, i + averageRequiredStreak).map((v, j) => {
                 const treshold = Math.max(tresholdValue - (tresholdReduce * (i + j - lastChange)), 0)
                 const [max, min] = seasonBounds[(currentSeason + 1) % 4]
+                const month = new Date(v.time).getMonth()
+                const monthBounds = seasonStartMonthLimits[(currentSeason + 1) % 4]
+                const isInMLim = (monthBounds[0] > monthBounds[1]) ? month <= monthBounds[1] || month >= monthBounds[0] : month <= monthBounds[1] && month >= monthBounds[0]
                 return {
-                    ...v, season: (v.value <= max - treshold && v.value > min + treshold) ? (currentSeason + 1) % 4 : currentSeason
+                    ...v, season: (v.value <= max - treshold && v.value > min + treshold) && isInMLim ? (currentSeason + 1) % 4 : currentSeason
                 }
             })
 
