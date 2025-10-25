@@ -192,8 +192,6 @@ function getSeasons(data = []) {
 
             const season = values[0].season
 
-            console.log(Math.round(values.reduce((prev, curr) => prev + curr.season, 0) / values.length) == season)
-
             if (
                 season !== currentSeason &&
                 values.slice(0, absoluteRequiredStreak).every(v => v.season == season) &&
