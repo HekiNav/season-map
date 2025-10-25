@@ -169,10 +169,12 @@ function getSeasons(data = []) {
 
 
     // checks if the next x days are the same to rule out short variations in temperatures
-    const requiredStreak = 5
+    const absoluteRequiredStreak = 7
+    // allows for some variation in the next x days, recommended to be higher than the absolute one to do something
+    const averageRequiredStreak = 14
 
     // a treshold to reduce flipping back and forth
-    const tresholdValue = 5
+    const tresholdValue = 3
     const tresholdReduce = 0.2
 
     for (let i = 0; i < data.length; i++) {
@@ -180,7 +182,7 @@ function getSeasons(data = []) {
             currentSeason = seasonBounds.findIndex(b => data[i].value <= b[0] && data[i].value > b[1])
             if (currentSeason == 1 && new Date(data[i].time).getMonth() > 6) currentSeason = 3
         } else {
-            const values = data.slice(i, i + requiredStreak).map((v, j) => {
+            const values = data.slice(i, i + averageRequiredStreak).map((v, j) => {
                 const treshold = Math.max(tresholdValue - (tresholdReduce * (i + j - lastChange)), 0)
                 const [max, min] = seasonBounds[(currentSeason + 1) % 4]
                 return {
@@ -190,8 +192,13 @@ function getSeasons(data = []) {
 
             const season = values[0].season
 
+            console.log(Math.round(values.reduce((prev, curr) => prev + curr.season, 0) / values.length) == season)
 
-            if (season !== currentSeason && values.every(v => v.season == values[0].season)) {
+            if (
+                season !== currentSeason &&
+                values.slice(0, absoluteRequiredStreak).every(v => v.season == season) &&
+                Math.round(values.reduce((prev, curr) => prev + curr.season, 0) / values.length) == season
+            ) {
                 currentSeason = season
                 lastChange = i
             }
