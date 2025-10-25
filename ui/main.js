@@ -2,7 +2,7 @@
 
 const map = L.map('map', {
     zoomControl: false
-}).setView([65, 26], 5);
+}).setView([65, 26], 5)
 
 const API_URL = "http://127.0.0.1:3001"
 
@@ -22,7 +22,7 @@ let dateBounds = { min: 0, max: 0 }
 initMap()
 
 const seasonColors = [
-    "white",  //winter
+    "cornflowerblue",  //winter
     "yellow", //spring
     "green",  //summer
     "orange", //fall
@@ -101,7 +101,7 @@ function setDate(amount, relative = true, pause = true) {
     currentDate = new Date(new Date(seasonData.start_time).getTime() + range.value * 24 * 3600 * 1000).toISOString().split("T")[0]
     updateMapColors()
 
-    document.querySelector("#date").textContent = currentDate
+    document.querySelectorAll("#date").forEach(el => el.textContent = currentDate)
 
     if (pause) pausePlayer()
 }
@@ -140,7 +140,7 @@ async function initMap() {
     seasonData = seasonDataJson
     setDateBounds(seasonData.start_time, seasonData.end_time)
     currentDate = seasonData.start_time
-    document.querySelector("#date").textContent = currentDate
+    document.querySelectorAll("#date").forEach(el => el.textContent = currentDate)
     updateMapColors()
 }
 function updateMapColors() {
@@ -167,7 +167,7 @@ function updateMapColors() {
     console.log(percents)
     percents.forEach((p,i) => {
         console.log(i)
-        document.querySelector(`.progress.season-percents[data-season="${i}"]`).style.width = `${p}%`
+        document.querySelectorAll(`.progress.season-percents[data-season="${i}"]`).forEach(el => el.style.width = `${p}%`)
     })
 }
 function lerp(x, y, a) { return x * (1 - a) + y * a }

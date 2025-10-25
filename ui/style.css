@@ -4,7 +4,7 @@ body {
     overflow: hidden;
 }
 #map {
-    height: 100vh;
+    align-self: stretch;
 }
 .custom-range{
     height: 2.5em !important;

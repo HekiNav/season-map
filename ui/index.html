@@ -14,78 +14,87 @@
 </head>
 
 <body>
-    <div id="map"></div>
-    <div class="w-100 p-0 position-fixed top-0 d-flex flex-column" style="z-index: 1000; pointer-events: fill;">
+    <div class="container vw-100 vh-100 m-0 p-0" style="max-width: none;">
+        <div class="row d-flex flex-column" style="z-index: 1000; pointer-events: fill;">
 
-        <div class="bg-white p-4 pb-1">
-            <div class="input-group flex-shrink-1">
-                <span class="input-group-text" id="date-range-start"><span class="spinner-border spinner-border-sm"
-                        aria-hidden="true"></span><span role="status" class="ms-1">Loading</span></span>
-                <button class="btn btn-outline-secondary" type="button" id="button-remove-30"
-                    onclick="setDate(-30)">-30</button>
-                <button class="btn btn-outline-secondary" type="button" id="button-remove-1"
-                    onclick="setDate(-1)">-1</button>
-                <input type="range"
-                    class="form-range flex-fill w-25 align-self-center px-2 bg-light border custom-range" min="0"
-                    max="0" step="1" id="date-range" autocomplete="off" disabled onmousemove="setDate(0)">
-                <button class="btn btn-outline-secondary" type="button" id="button-add-1"
-                    onclick="setDate(1)">+1</button>
-                <button class="btn btn-outline-secondary" type="button" id="button-add-30"
-                    onclick="setDate(30)">+30</button>
-                <span class="input-group-text" id="date-range-end"><span class="spinner-border spinner-border-sm"
-                        aria-hidden="true"></span><span role="status" class="ms-1">Loading</span></span>
+            <div class="bg-white p-4 py-1">
+                <div class="input-group input-group-sm flex-shrink-1">
+                    <span class="input-group-text" id="date-range-start"><span class="spinner-border spinner-border-sm"
+                            aria-hidden="true"></span><span role="status" class="ms-1">Loading</span></span>
+                    <button class="btn btn-outline-secondary" type="button" id="button-remove-30"
+                        onclick="setDate(-30)">-30</button>
+                    <button class="btn btn-outline-secondary" type="button" id="button-remove-1"
+                        onclick="setDate(-1)">-1</button>
+                    <input type="range"
+                        class="form-range flex-fill w-25 align-self-center px-2 bg-light border custom-range" min="0"
+                        max="0" step="1" id="date-range" autocomplete="off" disabled onmousemove="setDate(0)">
+                    <button class="btn btn-outline-secondary" type="button" id="button-add-1"
+                        onclick="setDate(1)">+1</button>
+                    <button class="btn btn-outline-secondary" type="button" id="button-add-30"
+                        onclick="setDate(30)">+30</button>
+                    <span class="input-group-text" id="date-range-end"><span class="spinner-border spinner-border-sm"
+                            aria-hidden="true"></span><span role="status" class="ms-1">Loading</span></span>
+                </div>
+            </div>
+            <div class="d-flex flex-row mt-4 ms-4 position-absolute" style="top: 4em;">
+                <div class="btn-group-vertical bg-white rounded" role="group" aria-label="Vertical zoom buttons">
+                    <button type="button" class="btn btn-outline-secondary" onclick="map.zoomIn()">+</button>
+                    <button type="button" class="btn btn-outline-secondary" onclick="map.zoomOut()">-</button>
+                </div>
             </div>
         </div>
-        <div class="d-flex flex-row mt-4 ms-4 position-absolute" style="top: 4em;">
-            <div class="btn-group-vertical bg-white rounded" role="group" aria-label="Vertical zoom buttons">
-                <button type="button" class="btn btn-outline-secondary" onclick="map.zoomIn()">+</button>
-                <button type="button" class="btn btn-outline-secondary" onclick="map.zoomOut()">-</button>
+        <div class="row h-100 d-grid d-md-flex flex-wrap" style="grid-template-rows: 2fr 1fr;">
+            <div id="map" class="col-md-8"></div>
+            <div class="col-md bg-light p-md-4" style="padding: 0 4em;">
+                <div class="w-100 d-flex justify-content-center align-items-center fw-semibold" id="date"
+                    style="height: 3em;">
+                    <span class="spinner-border spinner-border-sm" aria-hidden="true"></span><span role="status"
+                        class="ms-1">Loading</span>
+                </div>
+                <div class="progress-stacked mb-1" style="height: 3em;">
+                    <div class="progress season-percents" data-season="2" role="progressbar"
+                        style="width: 15%; height: 100%;" title="Total summer area">
+                        <div class="progress-bar" style="background: green;"></div>
+                    </div>
+                    <div class="progress season-percents" data-season="1" role="progressbar"
+                        style="width: 30%; height: 100%;" title="Total spring area">
+                        <div class="progress-bar" style="background: yellow;"></div>
+                    </div>
+                    <div class="progress season-percents" data-season="3" role="progressbar"
+                        style="width: 20%; height: 100%;" title="Total fall area">
+                        <div class="progress-bar" style="background: orange;"></div>
+                    </div>
+                    <div class="progress season-percents" data-season="0" role="progressbar"
+                        style="width: 30%; height: 100%;" title="Total winter area">
+                        <div class="progress-bar" style="background: cornflowerblue;"></div>
+                    </div>
+                    <div class="progress season-percents" data-season="4" role="progressbar"
+                        style="width: 5%; height: 100%;" title="Total no data area">
+                        <div class="progress-bar" style="background: gray;"></div>
+                    </div>
+                </div>
+
+                <div class="w-100 btn-group btn-group-lg" role="group"
+                    style="height: min-content; align-self: end;">
+                    <button class="btn btn-primary player" id="skip-start"><i
+                            class="bi bi-skip-end-fill icon-flip"></i></button>
+
+                    <input type="radio" class="btn-check player" name="btnradio" id="fast-backward" autocomplete="off">
+                    <label class="btn btn-primary" for="fast-backward"><i
+                            class="bi bi-fast-forward-fill icon-flip"></i></label>
+
+                    <input type="radio" class="btn-check paused player" name="btnradio" id="play" autocomplete="off">
+                    <label class="btn btn-primary" for="play"><i class="bi bi-play-fill on-paused"></i><i
+                            class="bi bi-pause-fill on-not-paused"></i></label>
+
+                    <input type="radio" class="btn-check player" name="btnradio" id="fast-forward" autocomplete="off">
+                    <label class="btn btn-primary" for="fast-forward"><i class="bi bi-fast-forward-fill"></i></label>
+
+                    <button class="btn btn-primary player" id="skip-end"><i class="bi bi-skip-end-fill"></i></button>
+
+                </div>
+
             </div>
-        </div>
-    </div>
-
-    <div class="bottom-0 position-absolute start-50 translate-middle" style="z-index: 1000;">
-
-
-        <div class="progress-stacked mb-1" style="height: 3em">
-            <div class="position-absolute d-flex w-100 justify-content-center align-items-center fw-semibold " id="date"
-                style="height: 3em">
-                <span class="spinner-border spinner-border-sm" aria-hidden="true"></span><span role="status"
-                    class="ms-1">Loading</span>
-            </div>
-            <div class="progress season-percents" data-season="2" role="progressbar" style="width: 15%; height: 100%;" title="Total summer area">
-                <div class="progress-bar" style="background: green;"></div>
-            </div>
-            <div class="progress season-percents" data-season="1" role="progressbar" style="width: 30%; height: 100%;" title="Total spring area">
-                <div class="progress-bar" style="background: yellow;"></div>
-            </div>
-            <div class="progress season-percents" data-season="3" role="progressbar" style="width: 20%; height: 100%;" title="Total fall area">
-                <div class="progress-bar" style="background: orange;"></div>
-            </div>
-            <div class="progress season-percents" data-season="0" role="progressbar" style="width: 30%; height: 100%;" title="Total winter area">
-                <div class="progress-bar" style="background: white;"></div>
-            </div>
-            <div class="progress season-percents" data-season="4" role="progressbar" style="width: 5%; height: 100%;" title="Total no data area">
-                <div class="progress-bar" style="background: gray;"></div>
-            </div>
-        </div>
-
-        <div class="btn-group btn-group-lg" role="group">
-            <button class="btn btn-primary player" id="skip-start"><i
-                    class="bi bi-skip-end-fill icon-flip"></i></button>
-
-            <input type="radio" class="btn-check player" name="btnradio" id="fast-backward" autocomplete="off">
-            <label class="btn btn-primary" for="fast-backward"><i class="bi bi-fast-forward-fill icon-flip"></i></label>
-
-            <input type="radio" class="btn-check paused player" name="btnradio" id="play" autocomplete="off">
-            <label class="btn btn-primary" for="play"><i class="bi bi-play-fill on-paused"></i><i
-                    class="bi bi-pause-fill on-not-paused"></i></label>
-
-            <input type="radio" class="btn-check player" name="btnradio" id="fast-forward" autocomplete="off">
-            <label class="btn btn-primary" for="fast-forward"><i class="bi bi-fast-forward-fill"></i></label>
-
-            <button class="btn btn-primary player" id="skip-end"><i class="bi bi-skip-end-fill"></i></button>
-
         </div>
     </div>
 
