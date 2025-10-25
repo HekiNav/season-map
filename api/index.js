@@ -19,6 +19,13 @@ const station_blacklist = [
 
 const bbox = [19, 59, 33, 71]
 
+const seasonBounds = [
+    [0, -Infinity],
+    [10, 0],
+    [Infinity, 10],
+    [10, 0],
+]
+
 let voronoiGeoJson, dailySeasons
 getData()
 
@@ -38,7 +45,6 @@ app.get('/seasons.json', (req, res) => {
 app.listen(process.env.PORT, () => {
     console.log(`API listening on port ${process.env.PORT}`)
 })
-
 
 async function getWeatherData() {
     console.time("weather_data")
@@ -115,9 +121,9 @@ async function processWeatherData() {
 
     console.timeLog("weather_data_processing", "processed seasons, writing seasons.json")
 
-    await fs.writeFile("./data/daily-seasons.json", JSON.stringify(seasons))
+    await fs.writeFile("./data/seasons.json", JSON.stringify(seasons))
 
-    console.timeLog("weather_data_processing", "wrote daily-seasons.json, generating voronoi pattern")
+    console.timeLog("weather_data_processing", "wrote seasons.json, generating voronoi pattern")
 
     const station_points = {
         type: "FeatureCollection",
@@ -156,47 +162,45 @@ async function processWeatherData() {
 }
 
 function getSeasons(data = []) {
-    const seasonLabels = data.map(e => ({ season: classify(e.value), time: e.time, days: e.days }))
 
-    let currentSeason = seasonLabels[0].season
+    let currentSeason
 
+    let lastChange = 0
 
-    const seasonChanges = [{
-        time: seasonLabels[0].time, days: seasonLabels[0].days, season:
-            seasonLabels[0].season == 1 ?
-                currentSeason == 2 ? 3 : 1 :
-                seasonLabels[0].season
-    }]
 
     // checks if the next x days are the same to rule out short variations in temperatures
-    const requiredStreak = 7
+    const requiredStreak = 5
 
-    for (let i = 1; i < seasonLabels.length; i++) {
-        const values = seasonLabels.slice(i, i + requiredStreak).map((v) =>
-        ({
-            ...v, season: v.season == 1 ?
-                currentSeason >= 2 ? 3 : 1 :
-                v.season
-        })
-        )
-        //current day
-        const season = values[0].season
-        if (season !== currentSeason && values.every(v => v.season == values[0].season)) {
-            seasonChanges.push({
-                time: seasonLabels[i].time, days: seasonLabels[i].days, season: season
+    // a treshold to reduce flipping back and forth
+    const tresholdValue = 5
+    const tresholdReduce = 0.2
+
+    for (let i = 0; i < data.length; i++) {
+        if (currentSeason < 0 || currentSeason === undefined) {
+            currentSeason = seasonBounds.findIndex(b => data[i].value <= b[0] && data[i].value > b[1])
+            if (currentSeason == 1 && new Date(data[i].time).getMonth() > 6) currentSeason = 3
+        } else {
+            const values = data.slice(i, i + requiredStreak).map((v, j) => {
+                const treshold = Math.max(tresholdValue - (tresholdReduce * (i + j - lastChange)), 0)
+                const [max, min] = seasonBounds[(currentSeason + 1) % 4]
+                return {
+                    ...v, season: (v.value <= max - treshold && v.value > min + treshold) ? (currentSeason + 1) % 4 : currentSeason
+                }
             })
-            currentSeason = season
+
+            const season = values[0].season
+
+
+            if (season !== currentSeason && values.every(v => v.season == values[0].season)) {
+                currentSeason = season
+                lastChange = i
+            }
+
         }
-        seasonLabels[i].season = currentSeason
+        data[i].season = currentSeason
     }
 
-    return [seasonLabels, seasonChanges];
-}
-
-function classify(temp) {
-    if (temp < 0) return 0 // winter
-    else if (temp <= 10) return 1 // spring fall
-    else return 2 // summer
+    return [data];
 }
 
 function get(source, config, ignoreStart = false) {
