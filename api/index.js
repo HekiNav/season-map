@@ -14,7 +14,8 @@ const parser = new XMLParser({
 
 const station_blacklist = [
     "Inari Seitalaassa",
-    "Oulu Oulunsalo Pellonpää"
+    "Oulu Oulunsalo Pellonpää",
+    "Nurmijärvi Röykkä"
 ]
 
 const bbox = [19, 59, 33, 71]
@@ -25,6 +26,15 @@ const seasonBounds = [
     [Infinity, 10],
     [10, 0],
 ]
+
+// checks if the next x days are the same to rule out short variations in temperatures
+const absoluteRequiredStreak = 5
+// allows for some variation in the next x days, recommended to be higher than the absolute one to do something
+const averageRequiredStreak = 7
+
+// a treshold to reduce flipping back and forth
+const tresholdValue = 5
+const tresholdReduce = 0.2
 
 let voronoiGeoJson, dailySeasons
 getData()
@@ -166,16 +176,6 @@ function getSeasons(data = []) {
     let currentSeason
 
     let lastChange = 0
-
-
-    // checks if the next x days are the same to rule out short variations in temperatures
-    const absoluteRequiredStreak = 7
-    // allows for some variation in the next x days, recommended to be higher than the absolute one to do something
-    const averageRequiredStreak = 14
-
-    // a treshold to reduce flipping back and forth
-    const tresholdValue = 3
-    const tresholdReduce = 0.2
 
     for (let i = 0; i < data.length; i++) {
         if (currentSeason < 0 || currentSeason === undefined) {
