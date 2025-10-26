@@ -68,6 +68,9 @@ app.get('/map.geojson', (req, res) => {
     if (!voronoiGeoJson) return res.json({ error: "Geojson file is being prepared, please wait" })
     res.send(Buffer.from(voronoiGeoJson))
 })
+app.get('/', (req, res) => {
+    res.send("SEASON MAP API https://github.com/hekinav/season-map")
+})
 app.get('/seasons.json', (req, res) => {
     if (!voronoiGeoJson) return res.json({ error: "Geojson file is being prepared, please wait" })
     res.send(dailySeasons)
