@@ -4,7 +4,7 @@ const map = L.map('map', {
     zoomControl: false
 }).setView([65, 26], 5)
 
-const API_URL = "http://127.0.0.1:3001"
+const API_URL = "."
 
 L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
     maxZoom: 19,
@@ -129,7 +129,7 @@ function pausePlayer() {
 }
 
 async function initMap() {
-    const [voronoiGeoJson, seasonDataJson] = await Promise.all([(await fetch(API_URL + "/map.geojson")).json(), (await fetch(API_URL + "/seasons.json")).json()])
+    const [voronoiGeoJson, seasonDataJson] = await Promise.all([(await fetch(API_URL + "/voronoi.geojson")).json(), (await fetch(API_URL + "/daily-seasons.json")).json()])
     console.log(voronoiGeoJson, seasonDataJson)
     if (voronoiGeoJson.error) return error(voronoiGeoJson.error)
     if (seasonDataJson.error) return error(seasonDataJson.error)
