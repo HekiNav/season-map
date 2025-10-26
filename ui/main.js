@@ -167,7 +167,10 @@ function updateMapColors() {
     console.log(percents)
     percents.forEach((p,i) => {
         console.log(i)
-        document.querySelectorAll(`.progress.season-percents[data-season="${i}"]`).forEach(el => el.style.width = `${p}%`)
+        document.querySelectorAll(`.progress.season-percents[data-season="${i}"]`).forEach(el => {
+            el.style.width = `${p}%`
+            el.querySelector(".progress-bar").textContent = `${Math.round(p)}%`
+        })
     })
 }
 function lerp(x, y, a) { return x * (1 - a) + y * a }

@@ -10,6 +10,9 @@ body {
     height: 2.5em !important;
     display: block;
 }
+.custom-range::-moz-range-thumb{
+    transition: 100ms linear;
+}
 .icon-flip::before{
     transform: scaleX(-1);
 }

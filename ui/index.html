@@ -36,46 +36,56 @@
                             aria-hidden="true"></span><span role="status" class="ms-1">Loading</span></span>
                 </div>
             </div>
-            <div class="d-flex flex-row mt-4 ms-4 position-absolute" style="top: 4em;">
-                <div class="btn-group-vertical bg-white rounded" role="group" aria-label="Vertical zoom buttons">
+            <div class="d-flex flex-row mt-4 ms-4 position-absolute" style="top: 4em; justify-content: space-between;">
+                <div class="btn-group-vertical bg-white rounded" role="group" aria-label="Vertical zoom buttons"
+                    style="z-index: 1000;">
                     <button type="button" class="btn btn-outline-secondary" onclick="map.zoomIn()">+</button>
                     <button type="button" class="btn btn-outline-secondary" onclick="map.zoomOut()">-</button>
                 </div>
+
             </div>
         </div>
-        <div class="row h-100 d-grid d-md-flex flex-wrap" style="grid-template-rows: 2fr 1fr;">
+        <div class="row h-100 d-grid d-md-flex flex-wrap" style="grid-template-rows: 1fr 1fr;">
             <div id="map" class="col-md-8"></div>
-            <div class="col-md bg-light p-md-4" style="padding: 0 4em;">
+            <div class="col-md bg-light p-md-4 d-grid" style="padding: 1em 4em; grid-template-rows: .2fr .2fr .5fr 1fr 1fr;">
                 <div class="w-100 d-flex justify-content-center align-items-center fw-semibold" id="date"
                     style="height: 3em;">
                     <span class="spinner-border spinner-border-sm" aria-hidden="true"></span><span role="status"
                         class="ms-1">Loading</span>
                 </div>
+                <div class="w-100 text-center">Season area percents</div>
+
+
+                <div class="hstack" style="font-size: 0.7em; justify-content: space-around;">
+                    <span><i class="bi bi-square-fill" style="color: yellow;"></i> Spring</span>
+                    <span><i class="bi bi-square-fill" style="color: green;" ></i> Summer</span>
+                    <span><i class="bi bi-square-fill" style="color: orange;" ></i> Fall</span>
+                    <span><i class="bi bi-square-fill" style="color: cornflowerblue;" ></i> Winter</span>
+                </div>
                 <div class="progress-stacked mb-1" style="height: 3em;">
                     <div class="progress season-percents" data-season="2" role="progressbar"
                         style="width: 15%; height: 100%;" title="Total summer area">
-                        <div class="progress-bar" style="background: green;"></div>
+                        <div class="progress-bar" style="background: green;">15%</div>
                     </div>
                     <div class="progress season-percents" data-season="1" role="progressbar"
                         style="width: 30%; height: 100%;" title="Total spring area">
-                        <div class="progress-bar" style="background: yellow;"></div>
+                        <div class="progress-bar text-black" style="background: yellow;">30%</div>
                     </div>
                     <div class="progress season-percents" data-season="3" role="progressbar"
                         style="width: 20%; height: 100%;" title="Total fall area">
-                        <div class="progress-bar" style="background: orange;"></div>
+                        <div class="progress-bar" style="background: orange;">20%</div>
                     </div>
                     <div class="progress season-percents" data-season="0" role="progressbar"
                         style="width: 30%; height: 100%;" title="Total winter area">
-                        <div class="progress-bar" style="background: cornflowerblue;"></div>
+                        <div class="progress-bar" style="background: cornflowerblue;">30%</div>
                     </div>
                     <div class="progress season-percents" data-season="4" role="progressbar"
                         style="width: 5%; height: 100%;" title="Total no data area">
-                        <div class="progress-bar" style="background: gray;"></div>
+                        <div class="progress-bar" style="background: gray;">5%</div>
                     </div>
                 </div>
 
-                <div class="w-100 btn-group btn-group-lg" role="group"
-                    style="height: min-content; align-self: end;">
+                <div class="w-100 btn-group btn-group-lg mb-auto">
                     <button class="btn btn-primary player" id="skip-start"><i
                             class="bi bi-skip-end-fill icon-flip"></i></button>
 
