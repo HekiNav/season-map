@@ -55,7 +55,8 @@ const tresholdReduce = 0.2
 let voronoiGeoJson, dailySeasons
 getData()
 
-cron.schedule('31 * * * *', () => {
+// reload hourly
+cron.schedule('* * * * *', () => {
     getData()
 });
 

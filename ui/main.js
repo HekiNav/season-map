@@ -130,6 +130,9 @@ function pausePlayer() {
 
 async function initMap() {
     const [voronoiGeoJson, seasonDataJson] = await Promise.all([(await fetch(API_URL + "/map.geojson")).json(), (await fetch(API_URL + "/seasons.json")).json()])
+    console.log(voronoiGeoJson, seasonDataJson)
+    if (voronoiGeoJson.error) return error(voronoiGeoJson.error)
+    if (seasonDataJson.error) return error(seasonDataJson.error)
     L.geoJSON(voronoiGeoJson, {
         onEachFeature: (feature, layer) => {
             layer.bindPopup(feature.properties.name);
@@ -173,6 +176,15 @@ function updateMapColors() {
         })
     })
 }
+function error(msg) {
+    
+    const errorToast = document.querySelector("#error-toast-template").cloneNode(true)
+    errorToast.classList.add("show")
+    errorToast.querySelector(".toast-body").textContent = msg
+    console.log(errorToast)
+    document.querySelector(".toast-container").append(errorToast)
+}
+
 function lerp(x, y, a) { return x * (1 - a) + y * a }
 function clamp(a, min = 0, max = 1) { return Math.min(max, Math.max(min, a)) }
 function invlerp(x, y, a) { return clamp((a - x) / (y - x)) }
