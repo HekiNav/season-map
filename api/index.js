@@ -5,6 +5,7 @@ import * as sync_fs from "node:fs"
 import express from "express"
 import data_locations from "./data/fmi-data-locations.json" with {type: "json"}
 import cors from "cors"
+import cron from "node-cron"
 
 const parser = new XMLParser({
     ignoreAttributes: false,
@@ -53,6 +54,10 @@ const tresholdReduce = 0.2
 
 let voronoiGeoJson, dailySeasons
 getData()
+
+cron.schedule('31 * * * *', () => {
+    getData()
+});
 
 const app = express()
 
